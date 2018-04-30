@@ -5,10 +5,17 @@ const dirPath = path.join(__dirname, 'data/')
 const filePath = path.join(__dirname, 'data/c0001')
 const filenameResult = 'autores.txt'
 let listAuthors;
+
+let allStopWords = ['about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'arent', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'cant', 'cannot', 'could', 'couldnt', 'did', 'didnt', 'do', 'does', 'doesnt', 'doing', 'dont', 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', 'hadnt', 'has', 'hasnt', 'have', 'havent', 'having', 'he', 'hed', 'hell', 'hes', 'her', 'here', 'heres', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'hows', 'i', 'id', 'ill', 'im', 'ive', 'if', 'in', 'into', 'is', 'isnt', 'it', 'its', 'its', 'itself', 'lets', 'me', 'more', 'most', 'mustnt', 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours ', 'ourselves', 'out', 'over', 'own', 'same', 'shant', 'she', 'shed', 'shell', 'shes', 'should', 'shouldnt', 'so', 'some', 'such', 'than', 'that', 'thats', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', 'theres', 'these', 'they', 'theyd', 'theyll', 'theyre', 'theyve', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'wasnt', 'we', 'wed', 'well', 'were', 'weve', 'were', 'werent', 'what', 'whats', 'when', 'whens', 'where', 'wheres', 'which', 'while', 'who', 'whos', 'whom', 'why', 'whys', 'with', 'wont', 'would', 'wouldnt', 'you', 'youd', 'youll', 'youre', 'youve', 'your', 'yours', 'yourself', 'yourselves']
+
 function applyMapReduceAuthor(author, listAuthors) {
     let listResult = []
-    if(listAuthors[author]) {
-        let countedNames = listAuthors[author].reduce(function (allNames, name) {
+    if (listAuthors[author]) {
+        let countedNames = listAuthors[author].filter(function (item) {
+            let found = allStopWords.findIndex(function (elem, index) { return elem === item })
+            return found === -1
+
+        }).reduce(function (allNames, name) {
             let term = name.replace('.', '')
             if (term in allNames) {
                 allNames[term]++;
@@ -17,20 +24,20 @@ function applyMapReduceAuthor(author, listAuthors) {
                 allNames[term] = 1;
             }
             return allNames;
-        }, {});
-    
+        }, {})
+
         let objResult = {}
         listAuthors = []
         keysSorted = Object.keys(countedNames).sort(function (a, b) { return countedNames[b] - countedNames[a] })
         Object.keys(countedNames).sort(function (a, b) { return countedNames[b] - countedNames[a] }).forEach(function (k) { objResult[k] = countedNames[k] })
         for (var key in objResult) {
-            listResult.push({word: key, count: objResult[key]})
+            listResult.push({ word: key, count: objResult[key] })
         }
     }
     else {
         listResult = null;
     }
-    
+
     return listResult;
 }
 
@@ -108,7 +115,7 @@ module.exports.applyMapReduceFiles = function () {
 }
 
 module.exports.getWordsThatMostHappenByAuthor = function (author_name) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         fs.readFile(`${dirname}${filenameResult}`, { encoding: 'utf-8' }, function (err, data) {
             if (err) reject(err)
             let lines = data.split(/\r?\n/);
@@ -128,11 +135,11 @@ module.exports.getWordsThatMostHappenByAuthor = function (author_name) {
                 }
                 return allNames;
             }, {});
-    
+
             let result = applyMapReduceAuthor(author_name, countedNames)
             resolve(result)
         })
     })
-   
+
 }
 
